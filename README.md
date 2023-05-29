@@ -23,5 +23,3 @@ Note: More technical details about the bot's decision-making logic and strategie
 ### Acknowledgements
 
 This project was made possible by Professor Stéphane Fardoux, my project partner Maxime Eisma, and the enthusiastic participation of my classmates. Their collective efforts have made this project an enriching and exciting journey.
-
-Stay tuned for exciting bot battles.
