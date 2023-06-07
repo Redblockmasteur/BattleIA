@@ -9,16 +9,15 @@ namespace ShieldManagment
     public class Sheild
     {
         public byte shieldLevel = 50;
+
         public byte[] ActivateShield()
         {
-            return BotHelper.ActionShield(shieldLevel); 
+            return BotHelper.ActionShield(shieldLevel);
         }
 
         public byte[] DesactivateShield()
         {
-            return BotHelper.ActionShield(0); 
+            return BotHelper.ActionShield(0);
         }
-
-
     }
 }

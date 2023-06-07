@@ -33,26 +33,23 @@ namespace EnergyWhoreV3
                                             LOCAL VARIABLES
         --------------------------------------------------------------------------------------------------------*/
 
-        public ushort currentEnergy = 100;
         public bool hasAShield = false;
-        public bool debug = true;
         public StatusEnergy energyStatus = StatusEnergy.Medium;
 
 
-
-        // ****************************************************************************************************
-        // Ne s'exécute qu'une seule fois au tout début
-        // C'est ici qu'il faut initialiser le bot
         public void DoInit()
         {
-            MainBot.nbEnergy = 0;
             MainBot.ChangeScanLevel(MainBot.baseScanLevel);
         }
 
-        // ****************************************************************************************************
-        /// Réception de la mise à jour des informations du bot
+
         public void StatusReport(UInt16 turn, UInt16 energy, UInt16 shieldLevel, UInt16 cloakLevel)
         {
+            if (MainBot.hasANewScan)
+            {
+                MainBot.hasANewScan = false;
+            }
+
             if (turn == 0)
             {
                 MainBot.hasAScan = false;
@@ -67,40 +64,41 @@ namespace EnergyWhoreV3
                 hasAShield = false;
             }
 
-            currentEnergy = energy;
 
             switch (energyStatus)
             {
                 //We create energy range in wich you can be in two status depending on when you came from
                 //to avoid switching between status to much
                 case StatusEnergy.Low:
-                    if (currentEnergy > 100)
+                    if (energy > 100)
                     {
                         energyStatus = StatusEnergy.Medium;
                     }
                     break;
                 case StatusEnergy.Medium:
-                    if (currentEnergy > 200)
+                    if (energy > 200)
                     {
                         energyStatus = StatusEnergy.High;
                     }
-                    else if (currentEnergy < 50)
+                    else if (energy < 50)
                     {
+                        MainBot.hasAScan = false;
                         energyStatus = StatusEnergy.Low;
                     }
                     break;
                 case StatusEnergy.High:
-                    if (currentEnergy > 400)
+                    if (energy > 400)
                     {
                         energyStatus = StatusEnergy.VeryHigh;
                     }
-                    else if (currentEnergy < 150)
+                    else if (energy < 150)
                     {
+                        MainBot.hasAScan = false;
                         energyStatus = StatusEnergy.Medium;
                     }
                     break;
                 case StatusEnergy.VeryHigh:
-                    if (currentEnergy < 350)
+                    if (energy < 350)
                     {
                         energyStatus = StatusEnergy.High;
                     }
@@ -108,34 +106,33 @@ namespace EnergyWhoreV3
             }
         }
 
-        // ****************************************************************************************************
-        /// On nous demande la distance de scan que l'on veut effectuer
+
         public byte GetScanSurface()
         {
             if (!MainBot.hasAScan)
             {
                 MainBot.xOfBot = MainBot.scanLevel;
                 MainBot.yOfBot = MainBot.scanLevel;
-                MainBot.listOfMoves.Clear();
+                MainBot.listOfMoves.Clear(); //We make sure that we don't follow a path decided in a previous scan
                 return MainBot.scanLevel;
             }
             return 0;
         }
 
-        // ****************************************************************************************************
-        /// Résultat du scan
+
         public void AreaInformation(byte distance, byte[] informations)
         {
             //TODO : Check if AreaInformation is called if you don't scan, we could then remove the following if
+            //TODO : Update : I think it is called because I had errors when I removed it
             if (!MainBot.hasAScan)
             {
+                //TODO : Revoves the nbennergy and remplace it by the MainBot.energyPos.Length
                 //energy memory reset
                 for (int i = 0; i < MainBot.nbEnergy; i++)
                 {
                     MainBot.energyPos[i] = null;
                 }
                 MainBot.nbEnergy = 0;
-                //TODO : Removes the nbEnergy parameter by using MainBot.energyPos.Length
 
 
                 //Here is the loop that fills the MainBot.memScan tab
@@ -161,27 +158,15 @@ namespace EnergyWhoreV3
                     }
                 }
 
-                //DEBUG PRINT
-                Console.WriteLine("Scan:");
-                for (int y = 0; y < MainBot.memScan.GetLength(0); y++)
-                {
-                    for (int x = 0; x < MainBot.memScan.GetLength(1); x++)
-                    {
-                        Console.Write(MainBot.memScan[y, x]);
-                    }
-                    Console.WriteLine();
-                }
                 MainBot.hasAScan = true;
+                MainBot.hasANewScan = true;
             }
         }
-
-        // ****************************************************************************************************
-        /// Action à effectuer
 
         public byte[] GetAction()
         {
             //DEBUG PRINT OF ALL THE VARIABLES IF NEEDED
-            if (debug)
+            if (MainBot.debug)
             {
                 Console.WriteLine("-------------------------------------------------------------------");
                 Console.WriteLine("DEBUG PRINT OF ALL THE VARIABLES");
@@ -189,43 +174,57 @@ namespace EnergyWhoreV3
                 Console.WriteLine("hasAScan:" + MainBot.hasAScan);
                 Console.WriteLine("hasAPath:" + MainBot.hasAPath);
                 Console.WriteLine("*****");
-                //Energy status
                 Console.WriteLine("energyStatus:" + energyStatus);
-                //hasAShield
                 Console.WriteLine("hasAShield:" + hasAShield);
-                //scanLevel
                 Console.WriteLine("scanLevel:" + MainBot.scanLevel);
                 Console.WriteLine("*****");
-                //nbEnergy + energyPos
                 Console.WriteLine("nbEnergy:" + MainBot.nbEnergy);
                 for (int i = 0; i < MainBot.nbEnergy; i++)
                 {
                     Console.WriteLine("energyPos[" + i + "]:" + MainBot.energyPos[i]);
                 }
                 Console.WriteLine("*****");
-                //listOfMoves
                 Console.WriteLine("listOfMoves.Count:" + MainBot.listOfMoves.Count);
                 for (int i = 0; i < MainBot.listOfMoves.Count; i++)
                 {
                     Console.WriteLine("listOfMoves[" + i + "]:" + MainBot.listOfMoves[i]);
                 }
                 Console.WriteLine("*****");
-                //xOfBot + yOfBot
                 Console.WriteLine("POS OfBot:" + MainBot.xOfBot + "/" + MainBot.yOfBot);
-                //xOfGoal + yOfGoal
                 Console.WriteLine("POS OfGoal:" + MainBot.xOfGoal + "/" + MainBot.yOfGoal);
                 Console.WriteLine("*****");
-                //memScan
                 Console.WriteLine("memScan:");
                 for (int y = 0; y < MainBot.memScan.GetLength(0); y++)
                 {
                     for (int x = 0; x < MainBot.memScan.GetLength(1); x++)
                     {
-                        Console.Write(MainBot.memScan[y, x]);
+                        int cellValue = MainBot.memScan[y, x];
+                        string displayValue;
+                        switch (cellValue)
+                        {
+                            case 0:
+                                displayValue = ".";
+                                break;
+                            case 1:
+                                displayValue = "1";
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                break;
+                            case 2:
+                                displayValue = "2";
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                break;
+                            case 3:
+                                displayValue = "█";
+                                break;
+                            default:
+                                displayValue = "?";
+                                break;
+                        }
+                        Console.Write(displayValue);
+                        Console.ResetColor();
                     }
                     Console.WriteLine();
                 }
-                //Print the retunr of the Is an ennemy function
                 Console.WriteLine("IsAnEnnemy:" + MainBot.IsAnEnnemy());
                 Console.WriteLine("-------------------------------------------------------------------");
                 Console.WriteLine("END OF DEBUG PRINT OF ALL THE VARIABLES");
@@ -238,14 +237,18 @@ namespace EnergyWhoreV3
             {
                 if (hasAShield)
                 {
-                    //DEBUG PRINT
-                    Console.WriteLine("You have called the shield desactivation");
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("You have called the shield desactivation");
+                    }
 
                     return Shield.DesactivateShield();
                 }
 
-                //DEBUG PRINT
-                Console.WriteLine("You have called the energy mode");
+                if (MainBot.debug)
+                {
+                    Console.WriteLine("You have called the energy mode");
+                }
 
                 return EnergyMode.Execute();
             }
@@ -258,72 +261,84 @@ namespace EnergyWhoreV3
                     MainBot.ChangeScanLevel(MainBot.baseScanLevel);
                 }
 
-                string temp = OppShoot.ScanOpportunityEnnemy();
-                if (temp != "None")
+                string temp = OppShoot.ScanOpportunityEnnemy(); //We store the result first to avoid calling the method twice
+                if (temp != "None" & MainBot.hasANewScan) //the second condition is to avoid shooting a bot recorded in a previous scan
                 {
-                    //DEBUG PRINT
-                    Console.WriteLine("You have called the oppshoot");
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("You have called the oppshoot");
+                    }
 
                     return OppShoot.Execute(temp);
                 }
 
-                //DEBUG PRINT
-                Console.WriteLine("You have called the energy mode");
+                if (MainBot.debug)
+                {
+                    Console.WriteLine("You have called the energy mode");
+                }
 
                 return EnergyMode.Execute();
             }
 
             if (energyStatus == StatusEnergy.High)
             {
-                MainBot.hasAScan = false;
                 if (!hasAShield)
                 {
-                    //DEBUG PRINT
-                    Console.WriteLine("You have called the shield activation");
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("You have called the shield activation");
+                    }
 
                     return Shield.ActivateShield();
                 }
 
-                if (MainBot.IsAnEnnemy())
+                if (MainBot.IsAnEnnemy() & MainBot.hasANewScan)
                 {
-                    //DEBUG PRINT
-                    Console.WriteLine("You have called the massmurder");
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("You have called the massmurder");
+                    }
 
                     return MassMurder.Execute();
                 }
 
-                //DEBUG PRINT
-                Console.WriteLine("You have called the energy mode");
+                if (MainBot.debug)
+                {
+                    Console.WriteLine("You have called the energy mode");
+                }
 
                 return EnergyMode.Execute();
             }
 
             //VeryHigh status => you scan at evry turn
+            MainBot.hasAScan = false;
+
             if (!hasAShield)
             {
-                //DEBUG PRINT
-                Console.WriteLine("You have called the shield activation");
+                if (MainBot.debug)
+                {
+                    Console.WriteLine("You have called the shield activation");
+                }
 
                 return Shield.ActivateShield();
             }
 
-            if (MainBot.IsAnEnnemy())
+            if (MainBot.IsAnEnnemy() & MainBot.hasANewScan)
             {
-                //DEBUG PRINT
-                Console.WriteLine("You have called the massmurder");
+                if (MainBot.debug)
+                {
+                    Console.WriteLine("You have called the massmurder");
+                }
 
                 return MassMurder.Execute();
             }
 
-            //DEBUG PRINT
-            Console.WriteLine("You have called the energy mode");
-
-            MainBot.hasAScan = false;
+            if (MainBot.debug)
+            {
+                Console.WriteLine("You have called the energy mode");
+            }
 
             return EnergyMode.Execute();
-
-
-
         }
     }
 }

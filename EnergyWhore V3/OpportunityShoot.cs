@@ -39,7 +39,7 @@ namespace OpportunityShoot
 
         public string ScanOpportunityEnnemy()
         {
-            for (int i = 0; i < MainBot.scanLevel; i++)
+            for (int i = 0; i < MainBot.scanLevel; i++) //top and left lines
             {
                 if (MainBot.memScan[MainBot.scanLevel, i] == 2)
                 {
@@ -54,7 +54,7 @@ namespace OpportunityShoot
                     return "North";
                 }
             }
-            for (int i = MainBot.scanLevel + 1; i < (MainBot.scanLevel * 2 + 1); i++)
+            for (int i = MainBot.scanLevel + 1; i < (MainBot.scanLevel * 2 + 1); i++) //bottom and right lines
             {
                 if (MainBot.memScan[MainBot.scanLevel, i] == 2)
                 {
@@ -69,6 +69,5 @@ namespace OpportunityShoot
             }
             return "None";
         }
-
     }
 }

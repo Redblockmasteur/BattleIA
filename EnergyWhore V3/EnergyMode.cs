@@ -5,20 +5,14 @@ using Main;
 
 namespace EnergyModeObj
 {
-
     // Class that provide all parameters and methods for when the bot is activly searching for energy
     public class NrjMode
     {
         static AStarPathfinding.Program PathFinding = new AStarPathfinding.Program();
 
-        public int index = 0;
-
 
         public byte[] Execute()
         {
-            //TODO : When the energy is on the 0/0 pos the bot goes there and i think that the energy is not removed so it crashes
-            //TODO : Update : same for each corner
-            //TODO : Update : sometimes the bot tries to go to a corner that has an ennemy on it
 
             //Resets the scan levels if it was changed elsewhere
             if (MainBot.scanLevel != MainBot.baseScanLevel)
@@ -40,14 +34,12 @@ namespace EnergyModeObj
                         }
                     }
                 }
+            }
 
-                //We check with a if and not an else because the RemoveLastEnergy() function 
-                // can empty the list of energy
-                if (MainBot.nbEnergy == 0)
-                {
-
-                    MainBot.hasAScan = false;
-                }
+            //Here we want to tell the bot to scan the next turn if he is about to reach the last energy
+            if (MainBot.nbEnergy <= 1 & MainBot.listOfMoves.Count <= 1)
+            {
+                MainBot.hasAScan = false;
             }
 
             if (!MainBot.hasAPath)
@@ -86,7 +78,7 @@ namespace EnergyModeObj
                 case 1:
                     //We first check that the corner is free
                     //A probleme may occur if all 4 corner are not free
-                    //TODO : Create the function that automatically takes us to the closest free case of the wanted corner
+                    //TODO : Create the function that automatically takes us to the closest free case of the wanted case
                     if (MainBot.IsCaseFree(0, 0))
                     {
                         MainBot.xOfGoal = 0;
@@ -194,7 +186,6 @@ namespace EnergyModeObj
                     min = distance;
                     MainBot.xOfGoal = MainBot.energyPos[i].Item1;
                     MainBot.yOfGoal = MainBot.energyPos[i].Item2;
-                    index = i;
                 }
             }
         }
@@ -203,6 +194,7 @@ namespace EnergyModeObj
             MainBot.nbEnergy--;
             for (int i = 0; i < MainBot.nbEnergy; i++)
             {
+                //The if checks that your bot is indeed on the energy
                 if (MainBot.energyPos[i].Item1 == MainBot.xOfGoal && MainBot.energyPos[i].Item2 == MainBot.yOfGoal)
                 {
                     MainBot.energyPos[i] = MainBot.energyPos[MainBot.nbEnergy];

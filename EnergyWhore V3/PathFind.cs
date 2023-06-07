@@ -28,18 +28,19 @@ namespace AStarPathfinding
 
         public System.Collections.Generic.List<string> Execute(int[,] map)
         {
-            Console.WriteLine("-----PATHFINDING ALGORITHM-----");
             var path = FindPath(map);
-            Console.WriteLine("Path:");
-            //Print the path
-            foreach (var move in path)
+            if (MainBot.debug)
             {
-                Console.WriteLine(move);
+                Console.WriteLine("-----PATHFINDING ALGORITHM-----");
+                Console.WriteLine("Path:");
+                foreach (var move in path)
+                {
+                    Console.WriteLine(move);
+                }
+                //Print the coordonates of the goal and of the bot
+                Console.WriteLine("Goal: " + MainBot.xOfGoal + " " + MainBot.yOfGoal);
+                Console.WriteLine("Bot: " + MainBot.xOfBot + " " + MainBot.yOfBot);
             }
-            //Print the coordonates of the goal and of the bot
-            Console.WriteLine("Goal: " + MainBot.xOfGoal + " " + MainBot.yOfGoal);
-            Console.WriteLine("Bot: " + MainBot.xOfBot + " " + MainBot.yOfBot);
-
             return path;
         }
         public List<string> FindPath(int[,] map)

@@ -6,13 +6,12 @@ using Main;
 
 namespace MassMurder
 {
+    //Class that provide all parameters and methods for when the bot is trying to kill the ennemy
     public class Murder
     {
         AStarPathfinding.Program PathFinding = new AStarPathfinding.Program();
         public int nbEnnemy = 0;
         public Tuple<int, int>[] ennemyPos = new Tuple<int, int>[100];
-        bool debug = true;
-
 
         public byte[] Execute()
         {
@@ -21,9 +20,10 @@ namespace MassMurder
             if (GetShortestDistance(ClosestEnnemy()) == 0)
             {
                 //Here we adapt the scan to the distance with the ennemy +1 to take in consideretion
-                //the fact taht the ennemy could move out of our scan
+                //the fact that the ennemy could move out of our scan
+                string temp = GetDirectionOfLineEnnemy(ClosestEnnemy());
                 ChangeScanToEnnemyPlusOne();
-                return Shoot(GetDirectionOfLineEnnemy(ClosestEnnemy()));
+                return Shoot(temp);
             }
 
             else
@@ -117,14 +117,31 @@ namespace MassMurder
         {
             //TODO : Check the recording of x and y pos, i think there are not the same in all the function
             //TODO : It works like that but doesn't make sense
+
+            if (MainBot.debug)
+            {
+                Console.WriteLine("Ennemy pos : " + ennemyPos[index].Item1 + " " + ennemyPos[index].Item2);
+                Console.WriteLine("Bot pos : " + MainBot.scanLevel + " " + MainBot.scanLevel);
+            }
+
+
+
             if (MainBot.scanLevel == ennemyPos[index].Item1)
             {
                 if (MainBot.scanLevel > ennemyPos[index].Item2)
                 {
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("Shoot West");
+                    }
                     return "West";
                 }
                 else
                 {
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("Shoot East");
+                    }
                     return "East";
                 }
             }
@@ -132,10 +149,18 @@ namespace MassMurder
             {
                 if (MainBot.scanLevel > ennemyPos[index].Item1)
                 {
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("Shoot North");
+                    }
                     return "North";
                 }
                 else
                 {
+                    if (MainBot.debug)
+                    {
+                        Console.WriteLine("Shoot South");
+                    }
                     return "South";
                 }
             }
@@ -161,36 +186,47 @@ namespace MassMurder
             }
             nbEnnemy = 0;
 
-            int scanSize = MainBot.memScan.GetLength(0);
+            if (MainBot.debug)
+            {
+                Console.WriteLine("I try to get the ennemy pos");
+            }
 
             //Go through the memScan
-            for (int i = 0; i < scanSize; i++)
+            for (int i = 0; i < MainBot.scanLevel * 2 + 1; i++)
             {
-                for (int j = 0; j < scanSize; j++)
+                for (int j = 0; j < MainBot.scanLevel * 2 + 1; j++)
                 {
                     if (MainBot.memScan[i, j] == 2 && !MainBot.IsCaseOurself(i, j))
                     {
+                        if (MainBot.debug)
+                        {
+                            Console.WriteLine("I found an ennemy at : " + i + " " + j);
+                        }
                         ennemyPos[nbEnnemy] = new Tuple<int, int>(i, j);
                         nbEnnemy++;
                     }
+                }
+            }
+            if (MainBot.debug)
+            {
+                Console.WriteLine("I found " + nbEnnemy + " ennemy");
+                for (int i = 0; i < nbEnnemy; i++)
+                {
+                    Console.WriteLine("Ennemy " + i + " : " + ennemyPos[i].Item1 + " " + ennemyPos[i].Item2);
                 }
             }
         }
 
         int ClosestEnnemy()
         {
-            //Now go through the tuple and find the closest ennemy
             int index = 0;
             int minDistance = 100;
             for (int i = 0; i < nbEnnemy; i++)
             {
-                int mainDistance;
-                int distanceX = Math.Abs(ennemyPos[i].Item1 - MainBot.scanLevel);
-                int distanceY = Math.Abs(ennemyPos[i].Item2 - MainBot.scanLevel);
-                mainDistance = Math.Min(distanceX, distanceY);
-                if (mainDistance < minDistance)
+                int distance = Math.Min(Math.Abs(ennemyPos[i].Item1 - MainBot.scanLevel), Math.Abs(ennemyPos[i].Item2 - MainBot.scanLevel));
+                if (distance < minDistance)
                 {
-                    minDistance = mainDistance;
+                    minDistance = distance;
                     index = i;
                 }
             }

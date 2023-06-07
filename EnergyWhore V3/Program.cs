@@ -12,7 +12,7 @@ class Program
 
     // ****************************************************************************************************
     // Adresse du serveur, à changer si nécessaire
-    private static string serverUrl = "ws://127.0.0.8:4226/bot";
+    private static string serverUrl = "ws://10.224.1.110:4226/bot";
 
 
     // ****************************************************************************************************
@@ -21,7 +21,7 @@ class Program
     // il faut utiliser le même identifiant pour le cockpit !
     private static string id = "99cf08cf-2b9a-439c-87cb-f8e979db398d";
     // Nom du bot
-    private static string botName = "EnergyWhoreV2";
+    private static string botName = "EnergyWhoreV3";
     // le code du bot
     private static EnergyIAV3 ia = new EnergyIAV3();
 
@@ -144,8 +144,6 @@ class Program
                             try
                             {
                                 var answerA = ia.GetAction();
-                                Console.Write($"**** {answerA.Length} ****");
-                                Console.WriteLine($" **** {answerA[0]} ****");
                                 Console.WriteLine($"Sending Action: {(BotAction)answerA[0]}");
                                 await client.SendAsync(new ArraySegment<byte>(answerA), WebSocketMessageType.Binary, true, CancellationToken.None);
                             }
